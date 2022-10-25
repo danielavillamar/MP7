@@ -94,4 +94,22 @@ move_y = MIDFIELD_Y*running.output['run']/10
 
 player.setheading(player.towards(ball_x, ball_y))
 player.forward(math.sqrt((move_x**2)+(move_y**2)))
+
+# Kick ball
+# Control Kick
+kick_ctrl = ctrl.ControlSystem([rule1, rule2, rule3])
+kicking = ctrl.ControlSystemSimulation(kick_ctrl)
+
+# Compute Kick
+kicking.input['distance'] = abs(ball_x-MIDFIELD_X) * 10 / MIDFIELD_X
+kicking.compute()
+kick_x = MIDFIELD_X*kicking.output['run']/10
+
+kicking.input['distance'] = abs(ball_y-0) * 10 / MIDFIELD_Y
+kicking.compute()
+kick_y = MIDFIELD_Y*kicking.output['run']/10
+
+ball.setheading(ball.towards(MIDFIELD_X, 0))
+ball.forward(math.sqrt((kick_x**2)+(kick_y**2)))
+
 input()

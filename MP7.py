@@ -27,6 +27,82 @@ def createHorizontalLine(xo, xf, y):
 def createVerticalLine(yo, yf, x):
   return [(x, y) for y in range(yo, yf)]
 
+
+class FuzzyDistance:
+  """Logica difusa
+
+  Variables a considerar:
+  - Distancia [0, 700]
+  - Direccion [0, 359]
+
+  Variables linguisticas de entrada:
+  - Distancia:
+    - 0. Estoy en el punto
+    - 1. Estoy cerca
+    - 2. Estoy lejos
+  - Direccion:
+    - 0. Me dirijo hacia el objetivo
+    - 1. Me dirijo a la derecha del objetivo
+    - 2. Me dirijo a la izquierda del objetivo
+    - 3. Estoy en direccion opuesta
+  
+  Variables linguisticas de salida:
+  - 0. Patear el balon
+  - 1. Correr a la izquierda
+  - 2. Correr a la derecha
+  - 3. Correr recto
+  - 4. Dar la vuelta
+
+  Cláusulas de Horn:
+  - Si estoy en el punto y Me dirijo hacia el objetivo => Patear el balon
+  - Si estoy cerca o lejos y Me dirijo a la derecha del objetivo => Correr a la izquierda
+  - Si estoy cerca o lejos y Me dirijo a la izquierda del objetivo => Correr a la derecha
+  - Si estoy cerca o lejos y Me dirijo hacia el objetivo => Correr recto
+  - Si estoy cerca o lejos y Estoy en direccion opuesta  => Dar la vuelta
+  """
+  point = 12
+  close = 36
+  far = 500
+
+  straight = 90
+  right = 45
+  left = 135
+  opposite = 270
+
+
+  @classmethod
+  def get_fuzzy_distance(cls, distance):
+    fuzzy_distance = [
+      distance / cls.point,
+      distance / cls.close,
+      distance / cls.far
+    ]
+    return fuzzy_distance.index(max(fuzzy_distance))
+
+  @classmethod
+  def get_fuzzy_rotation(cls, angle):
+    fuzzy_rotation = [
+      angle / cls.straight,
+      angle / cls.right,
+      angle / cls.left,
+      angle / cls.opposite
+    ]
+    return fuzzy_rotation.index(max(fuzzy_rotation))
+
+  @classmethod
+  def horn(cls, fd, fr):
+    if (fd == 0) and (fr == 0):
+      return 0
+    elif (fd == 1 or fd == 2) and (fr == 1):
+      return 1
+    elif (fd == 1 or fd == 2) and (fr == 2):
+      return 2
+    elif (fd == 1 or fd == 2) and (fr == 0):
+      return 3
+    else:
+      return 4
+
+
 class Simulation(object):
   def __init__(self, screen, initial=None):
     self.screen = screen
@@ -34,8 +110,8 @@ class Simulation(object):
     self.mody = height
 
     # Coordenadas del jugador
-    self.player_x = 30
-    self.player_y = 30
+    self.player_x = random.randint(24, 700)
+    self.player_y = random.randint(24, 700)
 
     # Stats del jugador
     self.player_width = 20
@@ -43,8 +119,8 @@ class Simulation(object):
     self.player_current_direction = (0,0)
 
     # Coordenadas de la pelota
-    self.ball_x = 100
-    self.ball_y = 100
+    self.ball_x = random.randint(24, 700)
+    self.ball_y = random.randint(24, 700)
 
     # Stats de la pelota
     self.ball_width = 10
@@ -64,16 +140,7 @@ class Simulation(object):
         self.screen.set_at((i, j), color)
 
   def moveUp(self, x, y):
-    pass
-  
-  def moveUp(self, x, y):
-    pass
-  
-  def moveUp(self, x, y):
-    pass
-  
-  def moveUp(self, x, y):
-    pass
+    ...
 
   # La dirección tiene que ser un vector unitario
   def ball_interactions(self, direction, strength): 
@@ -139,7 +206,12 @@ simulation = Simulation(
 
 
 
-ITERATIONS = 1000
-for _ in range(ITERATIONS):
+run = True
+while(run):
   pygame.time.delay(10)
   pygame.display.flip()
+  simulation.moveUp(0, 0)
+
+  for event in pygame.event.get():  # This will loop through a list of any keyboard or mouse events.
+    if event.type == pygame.QUIT: # Checks if the red button in the corner of the window is clicked
+      run = False
